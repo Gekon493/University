@@ -1,0 +1,31 @@
+from re import *
+import csv
+import urllib.request
+
+url = 'https://msk.spravker.ru/avtoservisy-avtotehcentry/'
+response = urllib.request.urlopen(url)
+html_content = response.read().decode()
+
+names = r'(?<=title-link">)[^<]+' 
+streets = r'(?<=meta--location">)[^<]+'
+phones = r'(?<=spec__value">)[\+78][^<]+'
+hours = r'(?<=spec__value">)[А-я][^<]+'
+
+s1 = [i.group() for i in finditer(names, html_content)]
+s2 = [i.group().strip() for i in finditer(streets, html_content)]
+s3 = [i.group() for i in finditer(phones, html_content)]
+s4 = [i.group().strip() for i in finditer(hours, html_content) if i.group().strip()]
+
+print(len(s1), len(s2), len(s3), len(s4))
+
+with open('Strletsov_Boss.csv', 'w', newline='', encoding='utf-8-sig') as s: 
+    writer = csv.DictWriter(s, fieldnames=['Название', 'Адрес', 'Телефон', 'Часы работы']) 
+    writer.writeheader() 
+
+    for name, street, number, hour in zip(s1, s2, s3, s4):
+        writer.writerow({
+            'Название': name,
+            'Адрес': street,
+            'Телефон': number,
+            'Часы работы': hour,
+        })
